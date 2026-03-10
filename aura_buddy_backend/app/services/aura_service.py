@@ -260,3 +260,55 @@ class AuraService:
         db.commit()
         db.refresh(transaction)
         return transaction
+
+    @staticmethod
+    def claim_daily_streak_reward(db: Session, user: User) -> AuraTransaction:
+        """
+        Claim daily login streak reward.
+        Logic:
+        - If already claimed today: throw 429.
+        - If last claim was 'yesterday': streak += 1 (caps at 7).
+        - If last claim was > 48 hours ago: reset streak to 1.
+        - If first time ever: streak = 1.
+        """
+        now = datetime.now(timezone.utc)
+        
+        if user.last_streak_claimed_at:
+            # Check if already claimed today (calendar day in UTC)
+            if user.last_streak_claimed_at.date() == now.date():
+                raise HTTPException(
+                    status_code=400,
+                    detail="Daily streak reward already claimed for today."
+                )
+            
+            # Check if it was yesterday (for incrementing)
+            yesterday = (now - timedelta(days=1)).date()
+            if user.last_streak_claimed_at.date() == yesterday:
+                user.current_streak += 1
+                if user.current_streak > 7:
+                    user.current_streak = 7  # Cap reward tier at day 7 or reset to 1?
+                    # Let's keep it at 7 for maximum reward if they stay consistent
+            else:
+                # Broke the streak (passed more than 1 full calendar day)
+                user.current_streak = 1
+        else:
+            # First claim ever
+            user.current_streak = 1
+
+        # Calculate reward amount based on streak (1-indexed)
+        # STREAK_REWARDS index 0 is Day 1
+        reward_idx = min(user.current_streak - 1, len(settings.STREAK_REWARDS) - 1)
+        reward_amount = settings.STREAK_REWARDS[reward_idx]
+
+        user.aura_balance += reward_amount
+        user.last_streak_claimed_at = now
+
+        transaction = AuraTransaction(
+            to_user_id=user.id,
+            amount=reward_amount,
+            transaction_type=TransactionType.STREAK_REWARD,
+        )
+        db.add(transaction)
+        db.commit()
+        db.refresh(transaction)
+        return transaction

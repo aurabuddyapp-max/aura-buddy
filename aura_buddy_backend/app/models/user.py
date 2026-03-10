@@ -11,6 +11,8 @@ class User(Base):
     firebase_uid = Column(String(128), unique=True, nullable=False, index=True)
     username = Column(String(30), unique=True, nullable=True, index=True)
     aura_balance = Column(Integer, default=0, nullable=False)
+    current_streak = Column(Integer, default=0, nullable=False)
+    last_streak_claimed_at = Column(DateTime(timezone=True), nullable=True)
     is_premium = Column(Boolean, default=False, nullable=False)
     premium_expires_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

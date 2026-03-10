@@ -17,6 +17,7 @@ class UserResponse(BaseModel):
     firebase_uid: str
     username: Optional[str] = None
     aura_balance: int
+    current_streak: int
     is_premium: bool
     premium_expires_at: Optional[datetime] = None
     created_at: datetime

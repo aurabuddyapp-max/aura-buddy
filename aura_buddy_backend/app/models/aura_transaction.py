@@ -15,6 +15,7 @@ class TransactionType(str, enum.Enum):
     MISSION_REWARD = "MISSION_REWARD"
     MOOD_REWARD = "MOOD_REWARD"
     JURY_REWARD = "JURY_REWARD"
+    STREAK_REWARD = "STREAK_REWARD"
 
 class AuraTransaction(Base):
     __tablename__ = "aura_transactions"

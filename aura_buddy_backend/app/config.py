@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     JURY_MIN_ACCOUNT_AGE_HOURS: int = 24
     JURY_MIN_AURA_BALANCE: int = 50
     JURY_DAILY_VOTE_LIMIT: int = 20
+    STREAK_REWARDS: list[int] = [20, 30, 40, 50, 60, 80, 150]
 
     # App
     APP_NAME: str = "Aura Buddy"
