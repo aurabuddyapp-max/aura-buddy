@@ -1,5 +1,6 @@
 import enum
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -22,7 +23,7 @@ class Mission(Base):
     __tablename__ = "missions"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     mission_type = Column(Enum(MissionType, native_enum=False), nullable=False)
     image_url = Column(String(500), nullable=True)
     status = Column(Enum(MissionStatus, native_enum=False), default=MissionStatus.PENDING, nullable=False)

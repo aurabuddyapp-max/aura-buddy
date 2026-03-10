@@ -1,5 +1,6 @@
 import enum
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, func, Boolean
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -21,8 +22,8 @@ class AuraTransaction(Base):
     __tablename__ = "aura_transactions"
 
     id = Column(Integer, primary_key=True, index=True)
-    from_user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
-    to_user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    from_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    to_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
     post_id = Column(Integer, ForeignKey("posts.id"), nullable=True, index=True)
     amount = Column(Integer, nullable=False)
     transaction_type = Column(Enum(TransactionType, native_enum=False), nullable=False)

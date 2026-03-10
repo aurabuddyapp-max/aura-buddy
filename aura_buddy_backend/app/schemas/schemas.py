@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 
 # --- User Schemas ---
@@ -13,7 +14,7 @@ class UserSetUsername(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: int
+    id: UUID
     firebase_uid: str
     username: Optional[str] = None
     aura_balance: int
@@ -34,7 +35,7 @@ class PostCreate(BaseModel):
 
 class PostResponse(BaseModel):
     id: int
-    user_id: int
+    user_id: UUID
     content: str
     image_url: Optional[str] = None
     aura_score: int
@@ -58,8 +59,8 @@ class HaterTax(BaseModel):
 
 class AuraTransactionResponse(BaseModel):
     id: int
-    from_user_id: Optional[int] = None
-    to_user_id: Optional[int] = None
+    from_user_id: Optional[UUID] = None
+    to_user_id: Optional[UUID] = None
     post_id: Optional[int] = None
     amount: int
     transaction_type: str
@@ -77,7 +78,7 @@ class MissionCreate(BaseModel):
 
 class MissionResponse(BaseModel):
     id: int
-    user_id: int
+    user_id: UUID
     mission_type: str
     image_url: Optional[str] = None
     status: str
@@ -98,7 +99,7 @@ class VoteCreate(BaseModel):
 
 class VoteResponse(BaseModel):
     id: int
-    user_id: int
+    user_id: UUID
     mission_id: int
     value: str
     created_at: datetime

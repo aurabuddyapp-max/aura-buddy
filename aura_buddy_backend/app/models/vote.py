@@ -1,5 +1,6 @@
 import enum
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Enum, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -13,7 +14,7 @@ class Vote(Base):
     __tablename__ = "votes"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     mission_id = Column(Integer, ForeignKey("missions.id"), nullable=False, index=True)
     value = Column(Enum(VoteValue, native_enum=False), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
