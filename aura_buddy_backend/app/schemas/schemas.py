@@ -34,7 +34,7 @@ class PostCreate(BaseModel):
 
 
 class PostResponse(BaseModel):
-    id: int
+    id: UUID
     user_id: UUID
     content: str
     image_url: Optional[str] = None
@@ -48,12 +48,12 @@ class PostResponse(BaseModel):
 
 # --- Aura Schemas ---
 class AuraTransfer(BaseModel):
-    post_id: int
+    post_id: UUID
     amount: int = Field(..., gt=0, le=1000)
 
 
 class HaterTax(BaseModel):
-    post_id: int
+    post_id: UUID
     amount: int = Field(..., gt=0, le=500)
 
 
@@ -61,7 +61,7 @@ class AuraTransactionResponse(BaseModel):
     id: int
     from_user_id: Optional[UUID] = None
     to_user_id: Optional[UUID] = None
-    post_id: Optional[int] = None
+    post_id: Optional[UUID] = None
     amount: int
     transaction_type: str
     created_at: datetime

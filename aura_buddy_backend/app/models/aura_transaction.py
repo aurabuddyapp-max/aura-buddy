@@ -24,7 +24,7 @@ class AuraTransaction(Base):
     id = Column(Integer, primary_key=True, index=True)
     from_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
     to_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
-    post_id = Column(Integer, ForeignKey("posts.id"), nullable=True, index=True)
+    post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id"), nullable=True, index=True)
     amount = Column(Integer, nullable=False)
     transaction_type = Column(Enum(TransactionType, native_enum=False), nullable=False)
     is_suspicious = Column(Boolean, default=False, nullable=False)
