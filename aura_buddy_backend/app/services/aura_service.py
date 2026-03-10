@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import func as sql_func
 from fastapi import HTTPException, status
@@ -13,7 +14,7 @@ class AuraService:
     """Handles all Aura economy operations with atomic DB transactions."""
 
     @staticmethod
-    def transfer_aura(db: Session, giver: User, post_id: int, amount: int) -> AuraTransaction:
+    def transfer_aura(db: Session, giver: User, post_id: UUID, amount: int) -> AuraTransaction:
         """Transfer Aura from giver to post author. Atomic."""
         post = db.query(Post).filter(Post.id == post_id).first()
         if not post:
@@ -94,7 +95,7 @@ class AuraService:
         return transaction
 
     @staticmethod
-    def hater_tax(db: Session, hater: User, post_id: int, amount: int) -> AuraTransaction:
+    def hater_tax(db: Session, hater: User, post_id: UUID, amount: int) -> AuraTransaction:
         """
         Hater tax: post loses X aura, hater loses 2X from balance.
         Enforces balance check on hater for 2X.

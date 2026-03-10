@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -76,7 +77,7 @@ def get_feed(
 
 
 @router.get("/{post_id}", response_model=PostResponse)
-def get_post(post_id: int, db: Session = Depends(get_db)):
+def get_post(post_id: UUID, db: Session = Depends(get_db)):
     """Get a single post by ID."""
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
