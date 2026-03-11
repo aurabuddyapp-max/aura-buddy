@@ -5,10 +5,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-class MissionStatus(str, enum.Enum):
-    PENDING = "PENDING"
-    APPROVED = "APPROVED"
-    REJECTED = "REJECTED"
+
 
 
 class MissionType(str, enum.Enum):

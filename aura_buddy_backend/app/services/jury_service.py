@@ -4,7 +4,7 @@ from sqlalchemy import func as sql_func
 from fastapi import HTTPException
 
 from app.models.mission import Mission, MissionStatus
-from app.models.vote import Vote, VoteValue
+from app.models.vote import Vote, VoteType
 from app.models.user import User
 from app.services.aura_service import AuraService
 from app.config import settings
@@ -47,7 +47,7 @@ class JuryService:
         # 3. Check voting cooldown (daily limit)
         one_day_ago = datetime.now(timezone.utc) - timedelta(days=1)
         recent_votes = (
-            db.query(sql_func.count(Vote.id))
+            db.query(sql_func.count(Vote.id))  # pylint: disable=not-callable
             .filter(Vote.user_id == user.id, Vote.created_at >= one_day_ago)
             .scalar() or 0
         )
@@ -67,7 +67,7 @@ class JuryService:
             raise HTTPException(status_code=400, detail="You have already voted on this mission")
 
         # Create the vote
-        vote_enum = VoteValue.VALID if vote_value == "VALID" else VoteValue.CAP
+        vote_enum = VoteType.AURA if vote_value == "VALID" else VoteType.HATE
         vote = Vote(
             user_id=user.id,
             mission_id=mission_id,
@@ -76,7 +76,7 @@ class JuryService:
         db.add(vote)
 
         # Update mission vote counters
-        if vote_enum == VoteValue.VALID:
+        if vote_enum == VoteType.AURA:
             mission.votes_valid += 1
         else:
             mission.votes_cap += 1
@@ -87,14 +87,14 @@ class JuryService:
         if total_votes >= settings.MISSION_APPROVAL_THRESHOLD:
             valid_ratio = mission.votes_valid / total_votes
             if valid_ratio >= 0.70:
-                mission.status = MissionStatus.APPROVED
+                mission.status = MissionStatus.COMPLETED
                 # Award mission Aura to the submitter
                 mission_owner = db.query(User).filter(User.id == mission.user_id).first()
                 if mission_owner:
                     AuraService.grant_mission_reward(db, mission_owner, auto_commit=False)
-            elif valid_ratio < 0.30 or mission.votes_cap >= settings.MISSION_REJECTION_THRESHOLD:
+            elif valid_ratio < 0.30 or getattr(mission, 'votes_cap', 0) >= settings.MISSION_REJECTION_THRESHOLD:
                 # If definitely failed, or hit absolute rejection threshold
-                mission.status = MissionStatus.REJECTED
+                mission.status = MissionStatus.FAILED
 
         db.commit()
         db.refresh(vote)

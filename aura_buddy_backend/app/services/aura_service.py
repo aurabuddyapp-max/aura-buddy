@@ -149,7 +149,7 @@ class AuraService:
         window_start = datetime.now(timezone.utc) - timedelta(hours=settings.AD_REWARD_WINDOW_HOURS)
 
         recent_claims = (
-            db.query(sql_func.count(AuraTransaction.id))
+            db.query(sql_func.count(AuraTransaction.id)) # pylint: disable=not-callable
             .filter(
                 AuraTransaction.to_user_id == user.id,
                 AuraTransaction.type == TransactionType.AD_REWARD,

@@ -26,7 +26,7 @@ class RateLimiter:
         window_start = datetime.now(timezone.utc) - timedelta(hours=24)
 
         post_count = (
-            db.query(sql_func.count(Post.id))
+            db.query(sql_func.count(Post.id)) # pylint: disable=not-callable
             .filter(
                 Post.user_id == user.id,
                 Post.created_at >= window_start,
@@ -53,7 +53,7 @@ class RateLimiter:
         window_start = datetime.now(timezone.utc) - timedelta(hours=24)
 
         post_count = (
-            db.query(sql_func.count(Post.id))
+            db.query(sql_func.count(Post.id)) # pylint: disable=not-callable
             .filter(
                 Post.user_id == user.id,
                 Post.created_at >= window_start,
@@ -71,7 +71,7 @@ class RateLimiter:
         window_start = datetime.now(timezone.utc) - timedelta(hours=settings.AD_REWARD_WINDOW_HOURS)
 
         claim_count = (
-            db.query(sql_func.count(AuraTransaction.id))
+            db.query(sql_func.count(AuraTransaction.id)) # pylint: disable=not-callable
             .filter(
                 AuraTransaction.to_user_id == user.id,
                 AuraTransaction.transaction_type == TransactionType.AD_REWARD,
