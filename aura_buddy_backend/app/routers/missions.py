@@ -8,108 +8,49 @@ from app.models.mission import Mission, MissionType, MissionStatus
 from app.schemas.schemas import MissionCreate, MissionResponse
 from app.utils.auth import get_current_user
 
+from app.services.mission_service import MissionService
+from app.schemas.schemas import MessageResponse, UserMissionResponse
+
 router = APIRouter(prefix="/missions", tags=["Missions"])
 
 
-@router.post("/", response_model=MissionResponse, status_code=201)
-def create_mission(
-    data: MissionCreate,
+@router.get("/daily", response_model=List[UserMissionResponse])
+def get_daily_missions(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Submit a new mission for community validation."""
-    if not current_user.username:
-        raise HTTPException(status_code=400, detail="Set a username before submitting missions")
-
-    # Validate mission type
-    try:
-        mission_type = MissionType(data.mission_type)
-    except ValueError:
-        valid_types = [t.value for t in MissionType]
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid mission type. Must be one of: {valid_types}",
-        )
-
-    mission = Mission(
-        user_id=current_user.id,
-        mission_type=mission_type,
-        image_url=data.image_url,
-        status=MissionStatus.PENDING,
-    )
-    db.add(mission)
-    db.commit()
-    db.refresh(mission)
-
-    return MissionResponse(
-        id=mission.id,
-        user_id=mission.user_id,
-        mission_type=mission.mission_type.value,
-        image_url=mission.image_url,
-        status=mission.status.value,
-        votes_valid=mission.votes_valid,
-        votes_cap=mission.votes_cap,
-        created_at=mission.created_at,
-        submitter_username=current_user.username,
-    )
+    """Get the user's random daily missions. Assures 3 missions are assigned."""
+    missions = MissionService.assign_daily_missions(db, current_user)
+    return missions
 
 
-@router.get("/pending", response_model=List[MissionResponse])
-def get_pending_missions(
-    limit: int = 20,
-    offset: int = 0,
-    db: Session = Depends(get_db),
-):
-    """Get global list of pending missions for the jury queue."""
-    missions = (
-        db.query(Mission)
-        .filter(Mission.status == MissionStatus.PENDING)
-        .order_by(Mission.created_at.asc())
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
-
-    return [
-        MissionResponse(
-            id=m.id,
-            user_id=m.user_id,
-            mission_type=m.mission_type.value,
-            image_url=m.image_url,
-            status=m.status.value,
-            votes_valid=m.votes_valid,
-            votes_cap=m.votes_cap,
-            created_at=m.created_at,
-            submitter_username=m.user.username if m.user else None,
-        )
-        for m in missions
-    ]
-
-
-@router.get("/my", response_model=List[MissionResponse])
-def get_my_missions(
+@router.get("/weekly", response_model=List[UserMissionResponse])
+def get_weekly_missions(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Get the current user's submitted missions."""
-    missions = (
-        db.query(Mission)
-        .filter(Mission.user_id == current_user.id)
-        .order_by(Mission.created_at.desc())
-        .all()
-    )
+    """Get the user's random weekly missions. Assures 5 missions are assigned."""
+    missions = MissionService.assign_weekly_missions(db, current_user)
+    return missions
 
-    return [
-        MissionResponse(
-            id=m.id,
-            user_id=m.user_id,
-            mission_type=m.mission_type.value,
-            image_url=m.image_url,
-            status=m.status.value,
-            votes_valid=m.votes_valid,
-            votes_cap=m.votes_cap,
-            created_at=m.created_at,
-            submitter_username=current_user.username,
-        )
-        for m in missions
-    ]
+
+@router.get("/milestones", response_model=List[UserMissionResponse])
+def get_milestones(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get the user's milestone missions."""
+    return MissionService.get_milestones(db, current_user)
+
+
+@router.post("/{user_mission_id}/complete", response_model=UserMissionResponse)
+def complete_mission(
+    user_mission_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Mark a mission as completed and claim rewards."""
+    um = MissionService.complete_mission(db, current_user, user_mission_id)
+    if not um:
+        raise HTTPException(status_code=400, detail="Invalid mission or already completed")
+    return um

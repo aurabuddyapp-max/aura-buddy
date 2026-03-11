@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, posts, aura, missions, jury
+from app.routers import auth, posts, aura, missions, jury, follower
 
 # Import all models so Base.metadata knows about them
 import app.models  # noqa: F401
@@ -41,6 +41,7 @@ app.include_router(posts.router)
 app.include_router(aura.router)
 app.include_router(missions.router)
 app.include_router(jury.router)
+app.include_router(follower.router)
 
 
 @app.get("/", tags=["Health"])

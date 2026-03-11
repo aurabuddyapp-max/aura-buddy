@@ -26,7 +26,7 @@ class AuraTransaction(Base):
     to_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
     post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id"), nullable=True, index=True)
     amount = Column(Integer, nullable=False)
-    transaction_type = Column(Enum(TransactionType, native_enum=False), nullable=False)
+    type = Column(Enum(TransactionType, native_enum=False), nullable=False)
     is_suspicious = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 

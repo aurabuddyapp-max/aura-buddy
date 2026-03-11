@@ -23,7 +23,7 @@ class AuraService:
         if post.user_id == giver.id:
             raise HTTPException(status_code=400, detail="Cannot give Aura to your own post")
 
-        if giver.aura_balance < amount:
+        if giver.aura_points < amount:
             raise HTTPException(status_code=400, detail="Insufficient Aura balance")
 
         receiver = db.query(User).filter(User.id == post.user_id).first()
@@ -36,7 +36,7 @@ class AuraService:
             .filter(
                 AuraTransaction.from_user_id == giver.id,
                 AuraTransaction.post_id == post_id,
-                AuraTransaction.transaction_type == TransactionType.TRANSFER
+                AuraTransaction.type == TransactionType.TRANSFER
             )
             .first()
         )
@@ -49,7 +49,7 @@ class AuraService:
             db.query(sql_func.sum(AuraTransaction.amount))
             .filter(
                 AuraTransaction.from_user_id == giver.id,
-                AuraTransaction.transaction_type == TransactionType.TRANSFER,
+                AuraTransaction.type == TransactionType.TRANSFER,
                 AuraTransaction.created_at >= one_day_ago
             )
             .scalar() or 0
@@ -66,7 +66,7 @@ class AuraService:
             .filter(
                 AuraTransaction.from_user_id == giver.id,
                 AuraTransaction.to_user_id == receiver.id,
-                AuraTransaction.transaction_type == TransactionType.TRANSFER,
+                AuraTransaction.type == TransactionType.TRANSFER,
                 AuraTransaction.created_at >= one_day_ago
             )
             .scalar() or 0
@@ -74,8 +74,8 @@ class AuraService:
         is_suspicious = (recent_to_receiver + amount) > 100
 
         # Atomic balance update
-        giver.aura_balance -= amount
-        receiver.aura_balance += amount
+        giver.aura_points -= amount
+        receiver.aura_points += amount
         post.aura_score += amount
 
         transaction = AuraTransaction(
@@ -83,7 +83,7 @@ class AuraService:
             to_user_id=receiver.id,
             post_id=post_id,
             amount=amount,
-            transaction_type=TransactionType.TRANSFER,
+            type=TransactionType.TRANSFER,
             is_suspicious=is_suspicious
         )
         db.add(transaction)
@@ -108,7 +108,7 @@ class AuraService:
             raise HTTPException(status_code=400, detail="Cannot hate on your own post")
 
         cost_to_hater = amount * 2
-        if hater.aura_balance < cost_to_hater:
+        if hater.aura_points < cost_to_hater:
             raise HTTPException(
                 status_code=400,
                 detail=f"Insufficient balance. Hater tax costs 2x ({cost_to_hater} Aura)",
@@ -119,21 +119,21 @@ class AuraService:
             raise HTTPException(status_code=404, detail="Post author not found")
 
         # Deduct from hater (2x penalty)
-        hater.aura_balance -= cost_to_hater
+        hater.aura_points -= cost_to_hater
         # Deduct from post author and post score
-        post_author.aura_balance -= amount
+        post_author.aura_points -= amount
         post.aura_score -= amount
 
         # Prevent negative balance on post author — clamp to 0
-        if post_author.aura_balance < 0:
-            post_author.aura_balance = 0
+        if post_author.aura_points < 0:
+            post_author.aura_points = 0
 
         transaction = AuraTransaction(
             from_user_id=hater.id,
             to_user_id=post_author.id,
             post_id=post_id,
             amount=-amount,  # Negative to indicate deduction
-            transaction_type=TransactionType.HATER_TAX,
+            type=TransactionType.HATER_TAX,
         )
         db.add(transaction)
         db.commit()
@@ -152,7 +152,7 @@ class AuraService:
             db.query(sql_func.count(AuraTransaction.id))
             .filter(
                 AuraTransaction.to_user_id == user.id,
-                AuraTransaction.transaction_type == TransactionType.AD_REWARD,
+                AuraTransaction.type == TransactionType.AD_REWARD,
                 AuraTransaction.created_at >= window_start,
             )
             .scalar()
@@ -164,12 +164,12 @@ class AuraService:
                 detail=f"Ad reward limit reached. Max {settings.AD_REWARD_MAX_CLAIMS} claims per {settings.AD_REWARD_WINDOW_HOURS} hours.",
             )
 
-        user.aura_balance += settings.AD_REWARD_AMOUNT
+        user.aura_points += settings.AD_REWARD_AMOUNT
 
         transaction = AuraTransaction(
             to_user_id=user.id,
             amount=settings.AD_REWARD_AMOUNT,
-            transaction_type=TransactionType.AD_REWARD,
+            type=TransactionType.AD_REWARD,
         )
         db.add(transaction)
         db.commit()
@@ -179,12 +179,12 @@ class AuraService:
     @staticmethod
     def grant_premium_bonus(db: Session, user: User) -> AuraTransaction:
         """Grant monthly premium Aura bonus."""
-        user.aura_balance += settings.PREMIUM_MONTHLY_BONUS
+        user.aura_points += settings.PREMIUM_MONTHLY_BONUS
 
         transaction = AuraTransaction(
             to_user_id=user.id,
             amount=settings.PREMIUM_MONTHLY_BONUS,
-            transaction_type=TransactionType.PREMIUM_BONUS,
+            type=TransactionType.PREMIUM_BONUS,
         )
         db.add(transaction)
         db.commit()
@@ -204,7 +204,7 @@ class AuraService:
             db.query(AuraTransaction)
             .filter(
                 AuraTransaction.to_user_id == user.id,
-                AuraTransaction.transaction_type == TransactionType.MISSION_REWARD,
+                AuraTransaction.type == TransactionType.MISSION_REWARD,
                 AuraTransaction.created_at >= window_start
             )
             .first()
@@ -215,12 +215,12 @@ class AuraService:
                 detail=f"Mission reward cooldown active. Try again in {settings.MISSION_REWARD_COOLDOWN_HOURS} hours."
             )
 
-        user.aura_balance += settings.MISSION_REWARD_AMOUNT
+        user.aura_points += settings.MISSION_REWARD_AMOUNT
 
         transaction = AuraTransaction(
             to_user_id=user.id,
             amount=settings.MISSION_REWARD_AMOUNT,
-            transaction_type=TransactionType.MISSION_REWARD,
+            type=TransactionType.MISSION_REWARD,
         )
         db.add(transaction)
         if auto_commit:
@@ -239,7 +239,7 @@ class AuraService:
             db.query(AuraTransaction)
             .filter(
                 AuraTransaction.to_user_id == user.id,
-                AuraTransaction.transaction_type == TransactionType.MOOD_REWARD,
+                AuraTransaction.type == TransactionType.MOOD_REWARD,
                 AuraTransaction.created_at >= window_start
             )
             .first()
@@ -250,12 +250,12 @@ class AuraService:
                 detail=f"Mood reward cooldown active. Try again in {settings.MOOD_REWARD_COOLDOWN_HOURS} hours."
             )
 
-        user.aura_balance += settings.MOOD_REWARD_AMOUNT
+        user.aura_points += settings.MOOD_REWARD_AMOUNT
 
         transaction = AuraTransaction(
             to_user_id=user.id,
             amount=settings.MOOD_REWARD_AMOUNT,
-            transaction_type=TransactionType.MOOD_REWARD,
+            type=TransactionType.MOOD_REWARD,
         )
         db.add(transaction)
         db.commit()
@@ -301,13 +301,13 @@ class AuraService:
         reward_idx = min(user.current_streak - 1, len(settings.STREAK_REWARDS) - 1)
         reward_amount = settings.STREAK_REWARDS[reward_idx]
 
-        user.aura_balance += reward_amount
+        user.aura_points += reward_amount
         user.last_streak_claimed_at = now
 
         transaction = AuraTransaction(
             to_user_id=user.id,
             amount=reward_amount,
-            transaction_type=TransactionType.STREAK_REWARD,
+            type=TransactionType.STREAK_REWARD,
         )
         db.add(transaction)
         db.commit()

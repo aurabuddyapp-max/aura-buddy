@@ -5,9 +5,9 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-class VoteValue(str, enum.Enum):
-    VALID = "VALID"
-    CAP = "CAP"
+class VoteType(str, enum.Enum):
+    AURA = "AURA"
+    HATE = "HATE"
 
 
 class Vote(Base):
@@ -15,18 +15,18 @@ class Vote(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    mission_id = Column(Integer, ForeignKey("missions.id"), nullable=False, index=True)
-    value = Column(Enum(VoteValue, native_enum=False), nullable=False)
+    post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id"), nullable=False, index=True)
+    vote_type = Column(Enum(VoteType, native_enum=False), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    # Enforce one vote per user per mission at DB level
+    # Enforce one vote per user per post at DB level
     __table_args__ = (
-        UniqueConstraint("user_id", "mission_id", name="uq_user_mission_vote"),
+        UniqueConstraint("user_id", "post_id", name="uq_user_post_vote"),
     )
 
     # Relationships
     user = relationship("User", back_populates="votes")
-    mission = relationship("Mission", back_populates="votes")
+    post = relationship("Post", backref="votes")
 
     def __repr__(self):
-        return f"<Vote user={self.user_id} mission={self.mission_id} value={self.value.value}>"
+        return f"<Vote user={self.user_id} post={self.post_id} type={self.vote_type.value}>"

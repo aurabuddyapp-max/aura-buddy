@@ -16,12 +16,41 @@ def cast_vote(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Cast a VALID or CAP vote on a pending mission."""
-    vote = JuryService.cast_vote(db, current_user, data.mission_id, data.value)
+    """Cast an AURA or HATE vote on a post."""
+    # Check if already voted
+    from app.models.vote import Vote, VoteType
+    existing = db.query(Vote).filter(
+        Vote.user_id == current_user.id,
+        Vote.post_id == data.post_id
+    ).first()
+    
+    if existing:
+        raise HTTPException(status_code=400, detail="You have already voted on this post")
+
+    # TODO: Use a service for atomic vote + aura update
+    vote = Vote(
+        user_id=current_user.id,
+        post_id=data.post_id,
+        vote_type=VoteType(data.vote_type)
+    )
+    db.add(vote)
+    
+    # Simple aura score update
+    from app.models.post import Post
+    post = db.query(Post).filter(Post.id == data.post_id).first()
+    if post:
+        if vote.vote_type == VoteType.AURA:
+            post.aura_score += 1
+        else:
+            post.aura_score -= 1
+            
+    db.commit()
+    db.refresh(vote)
+    
     return VoteResponse(
         id=vote.id,
         user_id=vote.user_id,
-        mission_id=vote.mission_id,
-        value=vote.value.value,
+        post_id=vote.post_id,
+        vote_type=vote.vote_type.value,
         created_at=vote.created_at,
     )

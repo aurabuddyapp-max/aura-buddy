@@ -10,10 +10,12 @@ class Post(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    content = Column(Text, nullable=False)
     image_url = Column(String(500), nullable=True)
+    caption = Column(Text, nullable=False)
+    hashtags = Column(Text, nullable=True) # Stored as comma-separated or JSON
     aura_score = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     author = relationship("User", back_populates="posts")

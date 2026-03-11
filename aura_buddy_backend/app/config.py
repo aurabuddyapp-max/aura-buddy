@@ -6,8 +6,9 @@ class Settings(BaseSettings):
     # Database — defaults to SQLite for local dev; set to PostgreSQL in .env for production
     DATABASE_URL: str = "sqlite:///./aura_buddy.db"
 
-    # Firebase
-    FIREBASE_CREDENTIALS_PATH: Optional[str] = None
+    # Supabase
+    SUPABASE_URL: str = "https://gvneccixeojhxwbbzsbz.supabase.co"
+    SUPABASE_JWT_SECRET: Optional[str] = None
 
     # Aura Economy
     AD_REWARD_AMOUNT: int = 100

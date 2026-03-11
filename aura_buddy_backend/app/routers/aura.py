@@ -100,7 +100,7 @@ def verify_integrity(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Check if the user's aura balance matches the sum of their transactions."""
+    """Check if the user's aura points match the sum of their transactions."""
     from sqlalchemy import func as sql_func
     from app.models.aura_transaction import AuraTransaction
 
@@ -113,13 +113,13 @@ def verify_integrity(
     ).scalar() or 0
 
     calculated_balance = received - sent
-    is_valid = calculated_balance == current_user.aura_balance
+    is_valid = calculated_balance == current_user.aura_points
 
     return {
         "is_valid": is_valid,
-        "recorded_balance": current_user.aura_balance,
+        "recorded_balance": current_user.aura_points,
         "calculated_balance": calculated_balance,
-        "discrepancy": current_user.aura_balance - calculated_balance
+        "discrepancy": current_user.aura_points - calculated_balance
     }
 
 
@@ -130,19 +130,18 @@ def get_leaderboards(
 ):
     """
     Get top users for various Leaderboard categories.
-    For MVP, we return accurate Global Aura and mock/approximate data for others.
     """
-    # 1. Global Aura
-    global_users = db.query(User).filter(User.aura_balance > 0).order_by(User.aura_balance.desc()).limit(50).all()
+    from app.services.leaderboard_service import LeaderboardService
+    
+    global_users = LeaderboardService.get_weekly_leaderboard(db, 50)
     global_aura = [
-        {"username": u.username, "aura": u.aura_balance, "premium": u.is_premium}
+        {"username": u.username or "Anonymous", "aura": u.aura_points, "premium": u.is_premium, "id": str(u.id)}
         for u in global_users
     ]
 
-    # For MVP, return empty/mock lists for others to let frontend fall back to its internal mock if empty
     return {
         "globalAura": global_aura,
-        "weeklyAura": [],
+        "weeklyAura": global_aura[:10], # For now, same as global but top 10
         "topJury": [],
         "topCreators": []
     }
@@ -176,9 +175,9 @@ def get_aura_history(
         emoji = "💸"
         desc = "Aura transaction"
 
-        ttype = txn.transaction_type.value if txn.transaction_type else ""
+        ttype = txn.type.value if txn.type else ""
 
-        if ttype == "POST_REWARD":
+        if ttype == "POST_REWARD" or ttype == "TRANSFER":
             title = "Post Loved" if is_receiver else "Spread the Love"
             emoji = "✨"
             desc = "Someone sent aura to your post" if is_receiver else "You tipped a post"
@@ -198,6 +197,10 @@ def get_aura_history(
             title = "Hater Tax"
             emoji = "💀"
             desc = "Penalty applied"
+        elif ttype == "STREAK_REWARD":
+            title = "Daily Streak"
+            emoji = "🔥"
+            desc = f"Day {current_user.current_streak} reward"
 
         history.append({
             "id": str(txn.id),
