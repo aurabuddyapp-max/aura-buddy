@@ -243,8 +243,8 @@ class _PostCardState extends State<PostCard> {
         SnackBar(
           content: Text(
             isPositive
-                ? '✨ Aura given to @${widget.post.authorUsername}'
-                : '🔥 Hater tax applied',
+                ? 'Aura given to @${widget.post.authorUsername}'
+                : 'Hater tax applied',
             style: GoogleFonts.inter(
               fontWeight: FontWeight.w600,
               color: Colors.white,
