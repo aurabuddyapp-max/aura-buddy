@@ -302,7 +302,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     ],
                   ),
                 ),
-                  child: Row(
+                Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(

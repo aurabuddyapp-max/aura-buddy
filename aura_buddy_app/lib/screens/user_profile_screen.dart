@@ -6,7 +6,7 @@ import '../models/models.dart';
 import '../services/follow_service.dart';
 import '../services/moderation_service.dart';
 import '../services/auth_service.dart';
-
+import '../services/api_service.dart';
 class UserProfileScreen extends StatefulWidget {
   final String username;
 
@@ -130,8 +130,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
     }
 
-    final isMe =
-        context.read<AuthService>().username == _profile!.username;
+
     final followService = context.watch<FollowService>();
     final apiService = context.read<ApiService>();
     final isFollowing = followService.isFollowing(_profile!.username);

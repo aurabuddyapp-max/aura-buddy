@@ -4,6 +4,8 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../theme.dart';
 import '../models/models.dart';
 import '../widgets/post_card.dart';
+import 'package:provider/provider.dart';
+import '../services/api_service.dart';
 
 class DiscoverScreen extends StatefulWidget {
   final String? initialHashtag;

@@ -5,6 +5,7 @@ import '../theme.dart';
 import '../services/auth_service.dart';
 import '../services/follow_service.dart';
 import 'user_list_screen.dart';
+import '../services/api_service.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   final String username;
@@ -28,7 +29,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   Future<void> _loadFollowStatus() async {
     final followService = context.read<FollowService>();
     final isFollowing = followService.isFollowing(widget.username);
-    final followerCount = followService.getMockFollowerCount(widget.username);
+    final followerCount = followService.getFollowerCount(widget.username);
     if (mounted) {
       setState(() {
         _isFollowing = isFollowing;
@@ -39,17 +40,15 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   }
 
   Future<void> _toggleFollow() async {
-    final auth = context.read<AuthService>();
+    final apiService = context.read<ApiService>();
     if (_isFollowing) {
-      await context.read<FollowService>().unfollow(widget.username);
-      auth.unfollowUser();
+      await context.read<FollowService>().unfollow(apiService, widget.username);
       setState(() {
         _isFollowing = false;
         _followerCount--;
       });
     } else {
-      await context.read<FollowService>().follow(widget.username);
-      auth.followUser();
+      await context.read<FollowService>().follow(apiService, widget.username);
       setState(() {
         _isFollowing = true;
         _followerCount++;
@@ -150,7 +149,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                               ),
                             ),
                           ),
-                          child: _SmallStat(label: 'Following', value: '${context.read<FollowService>().getMockFollowingCount(widget.username)}'),
+                          child: _SmallStat(label: 'Following', value: '${context.read<FollowService>().getFollowingCount(widget.username)}'),
                         ),
                       ],
                     ),

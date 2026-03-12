@@ -4,8 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../services/auth_service.dart';
-import '../services/aura_history_service.dart';
-import '../models/models.dart';
+import '../services/api_service.dart';
 
 class MoodScreen extends StatefulWidget {
   const MoodScreen({super.key});

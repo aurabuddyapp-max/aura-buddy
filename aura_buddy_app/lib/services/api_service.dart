@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config.dart';
 
 /// HTTP client for the Aura Buddy backend API.
@@ -63,6 +66,22 @@ class ApiService {
     return _handleList(res);
   }
 
+  Future<List<dynamic>> getHashtagSearch(String query) async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/posts/search?hashtag=$query'),
+      headers: _headers,
+    );
+    return _handleList(res);
+  }
+
+  Future<List<dynamic>> getPostsByHashtag(String hashtag) async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/posts/hashtag/$hashtag'),
+      headers: _headers,
+    );
+    return _handleList(res);
+  }
+
   // ─── Posts ───
   Future<List<dynamic>> getFeed({int limit = 20, int offset = 0}) async {
     final res = await http.get(
@@ -120,6 +139,22 @@ class ApiService {
       headers: _headers,
     );
     return _handle(res);
+  }
+
+  Future<String?> uploadProfilePicture(String userId, Uint8List bytes, String fileName) async {
+    try {
+      final supabase = Supabase.instance.client;
+      final path = '$userId/avatars/${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      await supabase.storage.from('avatars').uploadBinary(
+        path,
+        bytes,
+        fileOptions: const FileOptions(upsert: true),
+      );
+      return supabase.storage.from('avatars').getPublicUrl(path);
+    } catch (e) {
+      debugPrint('Error uploading profile picture: $e');
+      return null;
+    }
   }
 
   Future<Map<String, dynamic>> claimMoodReward() async {

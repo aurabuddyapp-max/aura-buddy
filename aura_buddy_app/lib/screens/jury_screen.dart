@@ -3,10 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
-import '../services/aura_history_service.dart';
+import '../services/api_service.dart';
 import 'discover_screen.dart';
 import 'package:provider/provider.dart';
-
 class JuryScreen extends StatefulWidget {
   const JuryScreen({super.key});
 
@@ -81,62 +80,6 @@ class _JuryScreenState extends State<JuryScreen> {
 
   void _showAuraPicker(int index) {
     _vote(index, true); 
-  }
-
-  void _loadJuryPosts() async {
-    setState(() => _isLoading = true);
-    try {
-      final apiService = context.read<ApiService>();
-      final results = await apiService.getFeed(); // In future, use /jury/queue
-      setState(() {
-        _juryPosts = results.map((p) => PostModel.fromJson(p)).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      debugPrint('Error loading jury posts: $e');
-      setState(() => _isLoading = false);
-    }
-  }
-w  void _showAuraPicker(int index) {
-    // Legacy aura picker for investing in missions. 
-    // For now, simple voting rewards/taxes are handled in backend.
-    _vote(index, true); 
-  }
- );
-  }
-
-  String _missionEmoji(String type) {
-    switch (type) {
-      case 'FIT_CHECK':
-        return '👗';
-      case 'EAT_HEALTHY':
-        return '🥗';
-      case 'WORKOUT':
-        return '💪';
-      case 'STUDY_SESSION':
-        return '📚';
-      case 'RANDOM_ACT':
-        return '✨';
-      default:
-        return '🎯';
-    }
-  }
-
-  String _missionLabel(String type) {
-    switch (type) {
-      case 'FIT_CHECK':
-        return 'Fit Check';
-      case 'EAT_HEALTHY':
-        return 'Eat Healthy';
-      case 'WORKOUT':
-        return 'Workout';
-      case 'STUDY_SESSION':
-        return 'Study Session';
-      case 'RANDOM_ACT':
-        return 'Random Act';
-      default:
-        return type;
-    }
   }
 
   @override
@@ -318,7 +261,7 @@ w  void _showAuraPicker(int index) {
                                           ),
                                           decoration: BoxDecoration(
                                             color: AuraBuddyTheme.primary
-                                                .withOpacity(0.1),
+                                                .withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),
@@ -406,7 +349,7 @@ w  void _showAuraPicker(int index) {
                                           vertical: 12,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AuraBuddyTheme.success.withOpacity(0.1),
+                                          color: AuraBuddyTheme.success.withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
@@ -430,7 +373,7 @@ w  void _showAuraPicker(int index) {
                                         ),
                                         decoration: BoxDecoration(
                                           color: AuraBuddyTheme.textLight
-                                              .withOpacity(0.1),
+                                              .withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),

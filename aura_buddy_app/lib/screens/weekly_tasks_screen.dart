@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../services/auth_service.dart';
-import '../services/aura_history_service.dart';
+import '../services/api_service.dart';
 import '../services/task_service.dart';
 import '../models/models.dart';
 
@@ -39,8 +39,9 @@ class _WeeklyTasksScreenState extends State<WeeklyTasksScreen> with SingleTicker
     if (tasks.isEmpty) return 'Refreshing...';
     // Simplified: Reset happens Sunday midnight
     final now = DateTime.now();
-    final nextSunday = now.add(Duration(days: 7 - now.weekday)).replace(hour: 0, minute: 0, second: 0);
-    final remaining = nextSunday.difference(now);
+    final nextSunday = now.add(Duration(days: 7 - now.weekday));
+    final resetDate = DateTime(nextSunday.year, nextSunday.month, nextSunday.day);
+    final remaining = resetDate.difference(now);
     if (remaining.isNegative) return 'Expiring soon';
     final d = remaining.inDays;
     final h = remaining.inHours % 24;
@@ -317,6 +318,5 @@ class _WeeklyTasksScreenState extends State<WeeklyTasksScreen> with SingleTicker
         },
       ),
     );
-  }
   }
 }

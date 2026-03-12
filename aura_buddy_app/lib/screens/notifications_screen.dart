@@ -22,7 +22,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     });
   }
 
-  @override
+
   String _timeAgo(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inMinutes < 1) return 'now';

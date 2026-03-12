@@ -8,7 +8,7 @@ import '../widgets/skeleton_loader.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/notification_service.dart';
-import 'search_screen.dart';
+
 import 'notifications_screen.dart';
 import 'leaderboard_screen.dart';
 import 'package:image_picker/image_picker.dart';
@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     final notificationService = context.watch<NotificationService>();
-    final greetingName = auth.username; // Use null if no username
+ // Use null if no username
     final unreadNotifCount = notificationService.unreadCount;
 
     return Scaffold(

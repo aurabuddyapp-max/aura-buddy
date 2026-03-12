@@ -4,6 +4,7 @@ import '../theme.dart';
 import '../services/follow_service.dart';
 import 'package:provider/provider.dart';
 import 'public_profile_screen.dart';
+import '../services/api_service.dart';
 
 class UserListScreen extends StatefulWidget {
   final String title;
@@ -23,6 +24,7 @@ class _UserListScreenState extends State<UserListScreen> {
   @override
   Widget build(BuildContext context) {
     final followService = context.watch<FollowService>();
+    final apiService = context.read<ApiService>();
 
     return Scaffold(
       backgroundColor: AuraBuddyTheme.background,
@@ -90,9 +92,9 @@ class _UserListScreenState extends State<UserListScreen> {
                         child: ElevatedButton(
                           onPressed: () {
                             if (isFollowing) {
-                              followService.unfollow(username);
+                              followService.unfollow(apiService, username);
                             } else {
-                              followService.follow(username);
+                              followService.follow(apiService, username);
                             }
                           },
                           style: ElevatedButton.styleFrom(

@@ -795,7 +795,7 @@ class _PostCardState extends State<PostCard> {
                 GestureDetector(
                   onTap: () {
                     final shareText = 'Check this post on Aura Buddy:\n\n'
-                        '${post.content}\n\n'
+                        '${post.caption}\n\n'
                         '${post.hashtags.join(' ')}\n\n'
                         '#aura #growth #aurabuddy';
                     Share.share(shareText);

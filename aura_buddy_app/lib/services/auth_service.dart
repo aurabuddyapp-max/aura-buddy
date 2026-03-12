@@ -31,6 +31,16 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  Future<void> claimDailyStreak(dynamic apiService) async {
+    try {
+      await apiService.claimDailyStreak();
+      await loadUserFromBackend(apiService);
+    } catch (e) {
+      debugPrint('Error claiming daily streak: $e');
+      rethrow;
+    }
+  }
+
   bool _isLoggedIn = false;
   String? _username;
   String? _email;
@@ -43,7 +53,7 @@ class AuthService extends ChangeNotifier {
   int _followersCount = 0;
   int _followingCount = 0;
   DateTime? _lastStreakClaimedAt;
-  DateTime? _lastUsernameChange;
+
   bool _isPremium = false;
 
   AuthService() {
@@ -146,7 +156,7 @@ class AuthService extends ChangeNotifier {
     _followersCount = 0;
     _followingCount = 0;
     _lastStreakClaimedAt = null;
-    _lastUsernameChange = null;
+
     _isPremium = false;
     _bio = null;
   }
@@ -196,14 +206,14 @@ class AuthService extends ChangeNotifier {
   int get daysUntilUsernameChange => 0;
 
   int get auraToNextLevel {
-    if (_auraBalance < 500) return 500 - _auraBalance;
-    if (_auraBalance < 2000) return 2000 - _auraBalance;
+    if (_auraPoints < 500) return 500 - _auraPoints;
+    if (_auraPoints < 2000) return 2000 - _auraPoints;
     return 0;
   }
 
   String get nextLevelTitle {
-    if (_auraBalance < 500) return '🌟 Level 2: Rising Star';
-    if (_auraBalance < 2000) return '👑 Level 3: Positive Voice';
+    if (_auraPoints < 500) return '🌟 Level 2: Rising Star';
+    if (_auraPoints < 2000) return '👑 Level 3: Positive Voice';
     return 'Max Level Reached';
   }
 }

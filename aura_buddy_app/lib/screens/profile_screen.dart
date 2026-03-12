@@ -28,98 +28,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  void _showStatDetails(String title, List<String> items) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              title,
-              style: GoogleFonts.inter(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-            if (title == 'Posts')
-              Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 16),
-                child: Text(
-                  'Only posts from the last 7-14 days are visible to others. Older posts are archived.',
-                  style: GoogleFonts.inter(fontSize: 12, color: AuraBuddyTheme.textMedium),
-                ),
-              ),
-            const SizedBox(height: 12),
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: items.length,
-                separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.05)),
-                itemBuilder: (ctx, i) {
-                  final item = items[i];
-                  final isExpired = item.contains('(Expired)');
-                  
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    onTap: () {
-                      if (title != 'Posts') {
-                        Navigator.pop(ctx);
-                        final cleanUsername = item.replaceAll('@', '');
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => UserProfileScreen(username: cleanUsername),
-                          ),
-                        );
-                      }
-                    },
-                    leading: CircleAvatar(
-                      backgroundColor: AuraBuddyTheme.primary.withOpacity(0.1),
-                      child: Text(
-                        item.replaceAll('@', '')[0].toUpperCase(),
-                        style: const TextStyle(color: AuraBuddyTheme.primary, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    title: Text(
-                      item,
-                      style: GoogleFonts.inter(
-                        color: isExpired ? AuraBuddyTheme.textMedium : Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                    trailing: isExpired 
-                      ? Icon(Icons.history_rounded, size: 18, color: AuraBuddyTheme.textLight)
-                      : const Icon(Icons.chevron_right_rounded, color: Colors.white24),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
   int _adWatchCount = 0;
   DateTime? _cooldownStart;
   static const _maxAds = 2;
@@ -151,38 +59,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _loadAdState() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedStart = prefs.getInt('ad_cooldown_start');
-    final savedCount = prefs.getInt('ad_watch_count') ?? 0;
-
-    if (savedStart != null) {
-      final start = DateTime.fromMillisecondsSinceEpoch(savedStart);
-      final elapsed = DateTime.now().difference(start).inHours;
-      if (elapsed >= _cooldownHours) {
-        _adWatchCount = 0;
-        _cooldownStart = null;
-        await prefs.remove('ad_cooldown_start');
-        await prefs.setInt('ad_watch_count', 0);
-      } else {
-        _adWatchCount = savedCount;
-        _cooldownStart = start;
-      }
-    }
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _saveAdState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('ad_watch_count', _adWatchCount);
-    if (_cooldownStart != null) {
-      await prefs.setInt(
-        'ad_cooldown_start',
-        _cooldownStart!.millisecondsSinceEpoch,
-      );
-    }
-  }
-
   bool get _canWatchAd => _adWatchCount < _maxAds;
 
   String get _cooldownRemaining {
@@ -211,9 +87,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final auth = context.read<AuthService>();
       final apiService = context.read<ApiService>();
       
+      final bytes = await image.readAsBytes();
       final imageUrl = await apiService.uploadProfilePicture(
         auth.userId!,
-        File(image.path),
+        bytes,
+        image.name,
       );
 
       // Update local profile pic
@@ -277,7 +155,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
-    final followService = context.watch<FollowService>();
     final username = auth.username ?? 'buddy';
     final bio = auth.bio ?? 'Aura enthusiast';
     final profilePic = auth.avatarUrl;
@@ -456,7 +333,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Column(
@@ -580,7 +457,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: AuraBuddyTheme.warning.withOpacity(0.1),
+                          color: AuraBuddyTheme.warning.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Center(
@@ -642,7 +519,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: AuraBuddyTheme.primary.withOpacity(0.1),
+                          color: AuraBuddyTheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Center(
@@ -704,7 +581,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: AuraBuddyTheme.gold.withOpacity(0.1),
+                          color: AuraBuddyTheme.gold.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Center(
@@ -764,7 +641,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: AuraBuddyTheme.success.withOpacity(0.1),
+                          color: AuraBuddyTheme.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Center(
@@ -975,7 +852,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 alpha: 0.1,
                                               )
                                               : AuraBuddyTheme.textLight
-                                                  .withOpacity(0.1),
+                                                  .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Center(
@@ -1008,9 +885,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                     : AuraBuddyTheme.textLight,
                                           ),
                                         ),
-                                        Text(
-                                          a.subtitle,
-                                          style: GoogleFonts.inter(
+                                          Text(
+                                            a.subtitle ?? '',
+                                            style: GoogleFonts.inter(
                                             fontSize: 12,
                                             color: AuraBuddyTheme.textLight,
                                           ),
@@ -1179,7 +1056,7 @@ class _ActionCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon, color: color, size: 26),
@@ -1210,8 +1087,6 @@ class _ActionCard extends StatelessWidget {
   }
 }
 
-// _ActionCard and _StatItem are already defined above.
-
 class _StatItem extends StatelessWidget {
   final String label;
   final String value;
@@ -1246,202 +1121,7 @@ class _StatItem extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: (color ?? Colors.white).withOpacity(0.6),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StreakCard extends StatelessWidget {
-  final String emoji;
-  final String title;
-  final String description;
-  final int currentDays;
-  final int targetDays;
-  final int bonus;
-  final bool completed;
-  final VoidCallback? onClaim;
-
-  const _StreakCard({
-    required this.emoji,
-    required this.title,
-    required this.description,
-    required this.currentDays,
-    required this.targetDays,
-    required this.bonus,
-    this.completed = false,
-    this.onClaim,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = (currentDays / targetDays).clamp(0.0, 1.0);
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      padding: const EdgeInsets.all(16),
-      decoration: AuraBuddyTheme.whiteCard(),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AuraBuddyTheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    emoji,
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: AuraBuddyTheme.textDark,
-                      ),
-                    ),
-                    Text(
-                      description,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: AuraBuddyTheme.textLight,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Claim',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color:
-                        completed
-                            ? AuraBuddyTheme.success.withOpacity(0.1)
-                            : AuraBuddyTheme.gold.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    completed ? '✅ +$bonus' : '+$bonus',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color:
-                          completed
-                              ? AuraBuddyTheme.success
-                              : AuraBuddyTheme.gold,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: AuraBuddyTheme.primary.withOpacity(
-                      0.1,
-                    ),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      completed
-                          ? AuraBuddyTheme.success
-                          : AuraBuddyTheme.primary,
-                    ),
-                    minHeight: 6,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                '$currentDays/$targetDays days',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AuraBuddyTheme.textMedium,
-                ),
-              ),
-            ],
-            Text(
-              badge,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: AuraBuddyTheme.textLight,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// _ActionCard and _StatItem are already defined above.
-
-class _StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color? color;
-  final VoidCallback? onTap;
-
-  const _StatItem({
-    required this.label,
-    required this.value,
-    this.color,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: color ?? Colors.white,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: (color ?? Colors.white).withOpacity(0.6),
+              color: (color ?? Colors.white).withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -1486,7 +1166,7 @@ class _StreakCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AuraBuddyTheme.primary.withOpacity(0.1),
+                  color: AuraBuddyTheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
@@ -1549,8 +1229,8 @@ class _StreakCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color:
                         completed
-                            ? AuraBuddyTheme.success.withOpacity(0.1)
-                            : AuraBuddyTheme.gold.withOpacity(0.1),
+                            ? AuraBuddyTheme.success.withValues(alpha: 0.1)
+                            : AuraBuddyTheme.gold.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -1597,68 +1277,6 @@ class _StreakCard extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MissionPreview extends StatelessWidget {
-  final UserMissionModel mission;
-  const _MissionPreview({required this.mission});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: AuraBuddyTheme.whiteCard(),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AuraBuddyTheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Center(
-              child: Text('🎯', style: TextStyle(fontSize: 18)),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  mission.mission.title,
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: AuraBuddyTheme.textDark,
-                  ),
-                ),
-                Text(
-                  mission.mission.description,
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: AuraBuddyTheme.textLight,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          Text(
-            '+${mission.mission.auraReward} Aura',
-            style: GoogleFonts.inter(
-              color: AuraBuddyTheme.gold,
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-            ),
           ),
         ],
       ),
