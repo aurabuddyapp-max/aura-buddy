@@ -95,6 +95,9 @@ class MainNavigationState extends State<MainNavigation> {
     final auth = context.read<AuthService>();
     final apiService = context.read<ApiService>();
     
+    // Link services so tokens stay in sync
+    auth.setApiService(apiService);
+    
     await auth.loadUserFromBackend(apiService);
     if (mounted) {
       await DailyLoginDialog.checkAndShow(context);

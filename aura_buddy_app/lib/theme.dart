@@ -14,9 +14,9 @@ class AuraBuddyTheme {
 
   // ─── Primary Palette ────────────────────────────────────────────
   // We use the highlight as the primary for actions
-  static const Color primary = Color(0xFFFFFFFF);
-  static const Color primaryLight = Color(0xFFF3F3F3);
-  static const Color primaryDark = Color(0xFFCCCCCC);
+  static const Color primary = Color(0xFF00BFFF); // Skyblue
+  static const Color primaryLight = Color(0xFF87CEFA); 
+  static const Color primaryDark = Color(0xFF009ACD);
 
   // ─── Gradients ──────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
@@ -40,14 +40,14 @@ class AuraBuddyTheme {
   // ─── Semantic Colors ───────────────────────────────────────────
   static const Color success = Color(0xFF22C55E); // Aura gain
   static const Color danger = Color(0xFFEF4444); // Aura loss
-  static const Color warning = Color(0xFFEAB308); // Kept similar gold/yellow for warning
-  static const Color gold = Color(0xFFEAB308); // Used for premium/leaderboard icons
+  static const Color warning = Color(0xFFFFD700); // Gold
+  static const Color gold = Color(0xFFFFD700); // Gold
 
   // ─── Text ──────────────────────────────────────────────────────
-  static const Color textDark = Color(0xFFFFFFFF); // Text primary
-  static const Color textMedium = Color(0xFF9E9E9E); // Text secondary
-  static const Color textLight = Color(0xFF9CA3AF); // Brighter than 6B7280 for better contrast
-  static const Color textOnPrimary = Color(0xFF0F0F0F); // Dark text on white buttons
+  static const Color textDark = Color(0xFFFFFFFF); // Text primary (White on Black)
+  static const Color textMedium = Color(0xFFD1D1D1); // Text secondary
+  static const Color textLight = Color(0xFFAAAAAA); 
+  static const Color textOnPrimary = Color(0xFF000000); // Black text on Skyblue/Gold buttons
 
   // ─── Shadows ───────────────────────────────────────────────────
   static List<BoxShadow> cardShadow = [

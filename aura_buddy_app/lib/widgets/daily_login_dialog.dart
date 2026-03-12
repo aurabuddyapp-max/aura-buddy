@@ -133,38 +133,41 @@ class _DailyLoginDialogState extends State<DailyLoginDialog>
           constraints: const BoxConstraints(maxWidth: 400),
           child: SingleChildScrollView(
             child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.all(24)              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.white, Color(0xFFF5F0FF)],
+                color: AuraBuddyTheme.surface,
+                border: Border.all(
+                  color: AuraBuddyTheme.primary.withValues(alpha: 0.3),
+                  width: 1,
                 ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('📅', style: TextStyle(fontSize: 40)),
-                  const SizedBox(height: 8),
+                  Icon(
+                    Icons.calendar_month_rounded, 
+                    size: 60, 
+                    color: AuraBuddyTheme.primary,
+                  ),
+                  const SizedBox(height: 16),
                   Text(
-                    'Daily Login Reward!',
+                    'Daily Login Reward',
                     style: GoogleFonts.inter(
                       fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AuraBuddyTheme.textDark,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Day ${_currentStreak + 1} streak',
+                    'Keep your streak alive! 🔥',
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: AuraBuddyTheme.primary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
                   // Day reward grid
                   GridView.builder(
@@ -173,8 +176,8 @@ class _DailyLoginDialogState extends State<DailyLoginDialog>
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 4,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
                           childAspectRatio: 0.85,
                         ),
                     itemCount: 7,
@@ -189,25 +192,19 @@ class _DailyLoginDialogState extends State<DailyLoginDialog>
                           color:
                               isPast
                                   ? AuraBuddyTheme.success.withValues(
-                                    alpha: 0.1,
+                                    alpha: 0.2,
                                   )
                                   : isToday
                                   ? AuraBuddyTheme.primary.withValues(
-                                    alpha: 0.1,
+                                    alpha: 0.2,
                                   )
                                   : AuraBuddyTheme.surfaceVariant,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                           border:
                               isToday
                                   ? Border.all(
                                     color: AuraBuddyTheme.primary,
                                     width: 2,
-                                  )
-                                  : isDay7 && isFuture
-                                  ? Border.all(
-                                    color: AuraBuddyTheme.gold.withValues(
-                                      alpha: 0.3,
-                                    ),
                                   )
                                   : null,
                         ),
@@ -218,43 +215,34 @@ class _DailyLoginDialogState extends State<DailyLoginDialog>
                               'Day ${i + 1}',
                               style: GoogleFonts.inter(
                                 fontSize: 10,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w800,
                                 color:
                                     isPast
                                         ? AuraBuddyTheme.success
                                         : isToday
                                         ? AuraBuddyTheme.primary
-                                        : AuraBuddyTheme.textLight,
+                                        : Colors.white.withOpacity(0.5),
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 4),
                             if (isPast)
                               const Icon(
                                 Icons.check_circle_rounded,
                                 color: AuraBuddyTheme.success,
-                                size: 18,
+                                size: 20,
                               )
                             else
                               Text(
                                 '+${rewards[i]}',
                                 style: GoogleFonts.inter(
                                   fontSize: isDay7 ? 16 : 14,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w900,
                                   color:
                                       isToday
                                           ? AuraBuddyTheme.primary
                                           : isDay7
                                           ? AuraBuddyTheme.gold
-                                          : AuraBuddyTheme.textMedium,
-                                ),
-                              ),
-                            if (isDay7 && !isPast)
-                              Text(
-                                '🔥 Bonus',
-                                style: GoogleFonts.inter(
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w600,
-                                  color: AuraBuddyTheme.gold,
+                                          : Colors.white,
                                 ),
                               ),
                           ],
@@ -262,22 +250,30 @@ class _DailyLoginDialogState extends State<DailyLoginDialog>
                       );
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                  Text(
-                    _currentStreak == 6
-                        ? '🔥 Streak bonus! Day 7!'
-                        : 'Come back tomorrow for +${rewards[(_currentStreak + 1).clamp(0, 6)]} aura!',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: AuraBuddyTheme.textMedium,
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      _currentStreak == 6
+                          ? '🔥 Day 7 Bonus active!'
+                          : 'Next reward in 24 hours: +${rewards[(_currentStreak + 1).clamp(0, 6)]} aura',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
                   SizedBox(
                     width: double.infinity,
-                    height: 48,
+                    height: 52,
                     child: ElevatedButton(
                       onPressed: _claimed ? null : _claimReward,
                       style: ElevatedButton.styleFrom(
@@ -285,24 +281,40 @@ class _DailyLoginDialogState extends State<DailyLoginDialog>
                             _claimed
                                 ? AuraBuddyTheme.success
                                 : AuraBuddyTheme.primary,
+                        foregroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
+                        elevation: 0,
                       ),
                       child: Text(
                         _claimed
-                            ? '✅ Claimed!'
-                            : 'CLAIM +${rewards[_currentStreak.clamp(0, 6)]} AURA',
+                            ? 'COLLECTED ✓'
+                            : 'CLAIM YOUR REWARD',
                         style: GoogleFonts.inter(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1,
                         ),
                       ),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  if (!_claimed)
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'MAYBE LATER',
+                        style: GoogleFonts.inter(
+                          color: Colors.white.withOpacity(0.4),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                 ],
               ),
+          ),
             ),
           ),
         ),

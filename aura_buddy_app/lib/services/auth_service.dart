@@ -33,7 +33,7 @@ class AuthService extends ChangeNotifier {
 
   Future<void> claimDailyStreak(dynamic apiService) async {
     try {
-      await apiService.claimDailyStreak();
+      await apiService.claimDailyStreakReward();
       await loadUserFromBackend(apiService);
     } catch (e) {
       debugPrint('Error claiming daily streak: $e');
@@ -60,6 +60,20 @@ class AuthService extends ChangeNotifier {
     _init();
   }
 
+  ApiService? _apiService;
+
+  void setApiService(ApiService api) {
+    _apiService = api;
+    _updateToken();
+  }
+
+  void _updateToken() {
+    final session = _supabase.auth.currentSession;
+    if (_apiService != null && session != null) {
+      _apiService!.setToken(session.accessToken);
+    }
+  }
+
   void _init() {
     _currentUser = _supabase.auth.currentUser;
     _isLoggedIn = _currentUser != null;
@@ -70,6 +84,10 @@ class AuthService extends ChangeNotifier {
       _currentUser = session?.user;
       final wasLoggedIn = _isLoggedIn;
       _isLoggedIn = _currentUser != null;
+
+      if (session != null && _apiService != null) {
+        _apiService!.setToken(session.accessToken);
+      }
       
       if (_isLoggedIn && !wasLoggedIn) {
         // Just logged in

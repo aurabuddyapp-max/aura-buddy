@@ -23,10 +23,10 @@ def login(
     user_id = claims["sub"]
     email = claims.get("email")
 
-    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         # Create user with Supabase ID and email
-        user = User(id=user_id, email=email)
+        # Give 1000 Aura as a sign-up bonus
+        user = User(id=user_id, email=email, aura_points=1000)
         db.add(user)
         db.commit()
         db.refresh(user)

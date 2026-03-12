@@ -712,11 +712,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           label: 'Posts',
                         ),
                         _StatItem(
-                          value: '-',
+                          value: '0',
                           label: 'Jury Votes',
                         ),
                         _StatItem(
-                          value: '-',
+                          value: '0',
                           label: 'Aura Given',
                         ),
                       ],
@@ -763,27 +763,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     currentDays: auth.currentStreak,
                     targetDays: 7,
                     bonus: 50 * (auth.currentStreak + 1),
-                    completed: auth.lastStreakClaimedAt?.day != DateTime.now().day,
-                    onClaim: auth.lastStreakClaimedAt?.day != DateTime.now().day ? () => DailyLoginDialog.checkAndShow(context) : null,
+                    completed: auth.lastStreakClaimedAt != null && 
+                               auth.lastStreakClaimedAt!.year == DateTime.now().year &&
+                               auth.lastStreakClaimedAt!.month == DateTime.now().month &&
+                               auth.lastStreakClaimedAt!.day == DateTime.now().day,
+                    onClaim: (auth.lastStreakClaimedAt == null || 
+                               auth.lastStreakClaimedAt!.day != DateTime.now().day) 
+                               ? () => DailyLoginDialog.checkAndShow(context) : null,
                   ),
                   const SizedBox(height: 8),
-                  _StreakCard(
+                  const _StreakCard(
                     emoji: '⚖️',
                     title: 'Jury Veteran',
                     description: 'Vote on jury 7 days in a row',
-                    currentDays: 5,
+                    currentDays: 0,
                     targetDays: 7,
                     bonus: 300,
                   ),
                   const SizedBox(height: 8),
-                  _StreakCard(
+                  const _StreakCard(
                     emoji: '📝',
                     title: 'Poster',
                     description: 'Post 3 days in a row',
-                    currentDays: 3,
+                    currentDays: 0,
                     targetDays: 3,
                     bonus: 100,
-                    completed: true,
+                    completed: false,
                   ),
                 ],
               ),
